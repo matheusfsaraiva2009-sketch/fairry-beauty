@@ -1,15 +1,19 @@
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
+import { UserCircle2 } from "lucide-react";
 
 async function getData() {
-  const configs = await prisma.siteConfig.findMany();
+  const [configs, members] = await Promise.all([
+    prisma.siteConfig.findMany(),
+    prisma.teamMember.findMany({ orderBy: { sortOrder: "asc" } }),
+  ]);
   const config: Record<string, string> = {};
   for (const c of configs) config[c.key] = c.value;
-  return { config };
+  return { config, members };
 }
 
 export default async function SobrePage() {
-  const { config } = await getData();
+  const { config, members } = await getData();
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#faf4ff] to-white">
       {/* Hero */}
@@ -31,7 +35,7 @@ export default async function SobrePage() {
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            {/* Logo no lugar da flor */}
+            {/* Logo */}
             <div className="bg-gradient-to-br from-[#E6CBF7]/30 to-[#FBB8D9]/30 rounded-3xl p-10 flex items-center justify-center min-h-64">
               <div className="relative">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#E6CBF7] to-[#FBB8D9] opacity-20 blur-2xl scale-110" />
@@ -59,23 +63,37 @@ export default async function SobrePage() {
         </div>
       </section>
 
-      {/* Valores */}
-      <section className="py-20 bg-[#3D2C4E] text-white">
+      {/* Equipe */}
+      <section className="py-20 bg-[#3D2C4E]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="font-heading text-3xl font-bold text-[#E6CBF7] mb-10">Nossos Valores</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            {[
-              { emoji: "💜", title: "Cuidado", desc: "Cada produto e serviço desenvolvido com atenção e carinho." },
-              { emoji: "🌿", title: "Naturalidade", desc: "Ingredientes selecionados com respeito à natureza." },
-              { emoji: "✨", title: "Excelência", desc: "Qualidade em cada detalhe, do produto ao atendimento." },
-            ].map((v) => (
-              <div key={v.title} className="text-center">
-                <div className="text-5xl mb-4">{v.emoji}</div>
-                <h3 className="font-heading text-xl font-semibold text-[#FBB8D9] mb-2">{v.title}</h3>
-                <p className="text-purple-200 text-sm leading-relaxed">{v.desc}</p>
-              </div>
-            ))}
-          </div>
+          <h2 className="font-heading text-3xl font-bold text-[#E6CBF7] mb-3">Nossa Equipe</h2>
+          <p className="text-purple-300 text-sm mb-12">As pessoas por trás do cuidado e carinho que oferecemos.</p>
+
+          {members.length === 0 ? (
+            <p className="text-purple-300 text-sm">Em breve nossa equipe será apresentada aqui.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {members.map((m) => (
+                <div key={m.id} className="flex flex-col items-center gap-4">
+                  {m.image ? (
+                    <img
+                      src={m.image}
+                      alt={m.name}
+                      className="w-36 h-36 rounded-full object-cover border-4 border-[#FBB8D9]/60 shadow-lg"
+                    />
+                  ) : (
+                    <div className="w-36 h-36 rounded-full bg-[#E6CBF7]/20 border-4 border-[#FBB8D9]/30 flex items-center justify-center">
+                      <UserCircle2 size={56} className="text-[#E6CBF7]/60" />
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-heading text-lg font-semibold text-white">{m.name}</p>
+                    {m.role && <p className="text-[#FBB8D9] text-sm mt-0.5">{m.role}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

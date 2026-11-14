@@ -158,3 +158,13 @@ model TimeSlot {
   available Boolean  @default(true)
   createdAt DateTime @default(now())
 }
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  name      String
+  role      String?
+  image     String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

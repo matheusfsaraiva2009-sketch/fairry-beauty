@@ -6,7 +6,7 @@ import Link from "next/link";
 import { signOut } from "next-auth/react";
 import {
   LayoutDashboard, Package, Heart, ShoppingBag, Calendar,
-  Users, Settings, LogOut, Menu, X, Sparkles, ArrowLeft
+  Users, Settings, LogOut, Menu, X, Sparkles, ArrowLeft, UserCircle2
 } from "lucide-react";
 
 const navItems = [
@@ -16,6 +16,7 @@ const navItems = [
   { href: "/admin/pedidos", icon: ShoppingBag, label: "Pedidos" },
   { href: "/admin/agendamentos", icon: Calendar, label: "Agendamentos" },
   { href: "/admin/piramides", icon: Sparkles, label: "Pirâmides Olfativas" },
+  { href: "/admin/equipe", icon: UserCircle2, label: "Equipe" },
   { href: "/admin/usuarios", icon: Users, label: "Usuários" },
   { href: "/admin/configuracoes", icon: Settings, label: "Configurações" },
 ];
