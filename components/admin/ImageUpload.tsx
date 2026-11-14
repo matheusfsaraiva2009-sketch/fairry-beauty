@@ -8,50 +8,66 @@ interface Props {
   label?: string;
 }
 
-const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
-const MAX_MB = 5;
+const CLOUD_NAME = "kwicjmsi";
+const UPLOAD_PRESET = "fairy-beauty-uploads";
+const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif", "image/svg+xml"];
+const MAX_MB = 10;
 
 export default function ImageUpload({ value, onChange, label = "Imagem" }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [tab, setTab] = useState<"upload" | "url">(
-    value && !value.startsWith("data:") && value.startsWith("http") ? "url" : "upload"
+    value && value.startsWith("http") ? "url" : "upload"
   );
 
-  const processFile = (file: File) => {
+  const uploadToCloudinary = async (file: File) => {
     setError("");
     if (!ALLOWED.includes(file.type)) {
-      setError("Formato não suportado. Use JPG, PNG ou WEBP.");
+      setError("Formato não suportado. Use JPG, PNG, WEBP, GIF ou SVG.");
       return;
     }
     if (file.size > MAX_MB * 1024 * 1024) {
       setError(`Arquivo muito grande. Máximo ${MAX_MB}MB.`);
       return;
     }
+
     setLoading(true);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      onChange(ev.target?.result as string);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("upload_preset", UPLOAD_PRESET);
+
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+        { method: "POST", body: fd }
+      );
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error?.message || "Erro ao enviar imagem.");
+        return;
+      }
+
+      const data = await res.json();
+      onChange(data.secure_url);
+    } catch {
+      setError("Erro de conexão com o Cloudinary.");
+    } finally {
       setLoading(false);
-    };
-    reader.onerror = () => {
-      setError("Erro ao ler o arquivo.");
-      setLoading(false);
-    };
-    reader.readAsDataURL(file);
+      if (inputRef.current) inputRef.current.value = "";
+    }
   };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) processFile(file);
-    if (inputRef.current) inputRef.current.value = "";
+    if (file) uploadToCloudinary(file);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
-    if (file) processFile(file);
+    if (file) uploadToCloudinary(file);
   };
 
   return (
@@ -82,20 +98,20 @@ export default function ImageUpload({ value, onChange, label = "Imagem" }: Props
           {loading ? (
             <div className="flex flex-col items-center gap-2 text-[#3D2C4E]">
               <Loader2 size={24} className="animate-spin text-[#FBB8D9]" />
-              <span className="text-xs">Carregando imagem...</span>
+              <span className="text-xs">Enviando para Cloudinary...</span>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2 text-gray-400">
               <Upload size={22} className="text-[#E6CBF7]" />
               <span className="text-xs">Clique ou arraste a imagem aqui</span>
-              <span className="text-[10px] text-gray-300">JPG, PNG, WEBP • máx. 5MB</span>
+              <span className="text-[10px] text-gray-300">JPG, PNG, WEBP, GIF, SVG • máx. 10MB</span>
             </div>
           )}
         </div>
       ) : (
         <input
           type="url"
-          value={value.startsWith("data:") ? "" : value}
+          value={value}
           onChange={(e) => { setError(""); onChange(e.target.value); }}
           placeholder="https://..."
           className="w-full px-3 py-2.5 border border-[#E6CBF7] rounded-xl text-sm text-[#3D2C4E] placeholder:text-gray-300"
