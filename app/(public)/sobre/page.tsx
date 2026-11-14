@@ -1,18 +1,15 @@
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
-import OlfactivePyramids from "@/components/home/OlfactivePyramids";
 
 async function getData() {
-  const [configs, pyramids] = await Promise.all([
-    prisma.siteConfig.findMany(),
-    prisma.olfactivePyramid.findMany({ orderBy: [{ sortOrder: "asc" }] }),
-  ]);
+  const configs = await prisma.siteConfig.findMany();
   const config: Record<string, string> = {};
   for (const c of configs) config[c.key] = c.value;
-  return { config, pyramids };
+  return { config };
 }
 
 export default async function SobrePage() {
-  const { config, pyramids } = await getData();
+  const { config } = await getData();
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#faf4ff] to-white">
       {/* Hero */}
@@ -34,10 +31,17 @@ export default async function SobrePage() {
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            {/* Logo no lugar da flor */}
             <div className="bg-gradient-to-br from-[#E6CBF7]/30 to-[#FBB8D9]/30 rounded-3xl p-10 flex items-center justify-center min-h-64">
-              <div className="text-center">
-                <div className="text-7xl mb-4">🌸</div>
-                <div className="text-4xl">✨</div>
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#E6CBF7] to-[#FBB8D9] opacity-20 blur-2xl scale-110" />
+                <Image
+                  src="/logo-fairy-beauty.jpg"
+                  alt="Fairy Beauty"
+                  width={260}
+                  height={260}
+                  className="relative rounded-2xl shadow-xl object-cover w-48 h-48 sm:w-64 sm:h-64"
+                />
               </div>
             </div>
             <div>
@@ -54,23 +58,6 @@ export default async function SobrePage() {
           </div>
         </div>
       </section>
-
-      {/* Pirâmides Olfativas */}
-      {pyramids.length > 0 && (
-        <section id="piramides" className="py-20 bg-gradient-to-br from-[#faf4ff] to-[#fce8f3]">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-14">
-              <h2 className="font-heading text-3xl sm:text-4xl font-bold text-[#3D2C4E] mb-3">
-                Pirâmides Olfativas
-              </h2>
-              <p className="text-gray-500 max-w-xl mx-auto">
-                Conheça as camadas de fragrância dos nossos hidratantes. Cada nota foi pensada para criar uma experiência sensorial única e memorável.
-              </p>
-            </div>
-            <OlfactivePyramids pyramids={pyramids} />
-          </div>
-        </section>
-      )}
 
       {/* Valores */}
       <section className="py-20 bg-[#3D2C4E] text-white">

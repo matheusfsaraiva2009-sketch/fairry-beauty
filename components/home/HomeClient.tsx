@@ -4,16 +4,14 @@ import Image from "next/image";
 import { Sparkles, ArrowRight } from "lucide-react";
 import ProductCard from "@/components/products/ProductCard";
 import MassageCard from "@/components/massages/MassageCard";
-import OlfactivePyramids from "@/components/home/OlfactivePyramids";
 
 interface Props {
   products: any[];
   massages: any[];
-  pyramids: any[];
   config: Record<string, string>;
 }
 
-export default function HomeClient({ products, massages, pyramids, config }: Props) {
+export default function HomeClient({ products, massages, config }: Props) {
   return (
     <div>
       {/* ─── HERO ─── */}
@@ -149,23 +147,7 @@ export default function HomeClient({ products, massages, pyramids, config }: Pro
         </div>
       </section>
 
-      {/* ─── PYRAMIDS TEASER ─── */}
-      {pyramids.length > 0 && (
-        <section className="py-20 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="font-heading text-3xl sm:text-4xl font-bold text-[#3D2C4E] mb-3">Pirâmides Olfativas</h2>
-              <p className="text-gray-500 max-w-xl mx-auto">Descubra as camadas de fragrância dos nossos hidratantes exclusivos.</p>
-            </div>
-            <OlfactivePyramids pyramids={pyramids} />
-            <div className="text-center mt-10">
-              <Link href="/sobre#piramides" className="btn-outline">
-                Ver todas as fragrâncias <ArrowRight size={16} />
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
+
 
     </div>
   );
