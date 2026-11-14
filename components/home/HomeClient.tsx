@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { Sparkles, Leaf, Heart, ArrowRight, Star } from "lucide-react";
+import { Sparkles, ArrowRight } from "lucide-react";
 import ProductCard from "@/components/products/ProductCard";
 import MassageCard from "@/components/massages/MassageCard";
 import OlfactivePyramids from "@/components/home/OlfactivePyramids";
@@ -12,13 +12,6 @@ interface Props {
   pyramids: any[];
   config: Record<string, string>;
 }
-
-const features = [
-  { icon: Sparkles, label: "Produtos Naturais", desc: "Fórmulas cuidadosas com ingredientes selecionados", color: "bg-[#E6CBF7]" },
-  { icon: Leaf, label: "Bem-estar Total", desc: "Do cuidado corporal à terapia de relaxamento", color: "bg-[#C6EED6]" },
-  { icon: Heart, label: "Atendimento Especial", desc: "Dedicação e carinho em cada atendimento", color: "bg-[#FBB8D9]" },
-  { icon: Star, label: "Experiência Única", desc: "Uma jornada sensorial completa para você", color: "bg-[#B3E1F8]" },
-];
 
 export default function HomeClient({ products, massages, pyramids, config }: Props) {
   return (
@@ -74,28 +67,7 @@ export default function HomeClient({ products, massages, pyramids, config }: Pro
         </div>
       </section>
 
-      {/* ─── FEATURES ─── */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <h2 className="font-heading text-3xl sm:text-4xl font-bold text-[#3D2C4E] mb-3">
-              Por que nos escolher?
-            </h2>
-            <p className="text-gray-500 max-w-xl mx-auto">Cada detalhe pensado para proporcionar a melhor experiência de cuidado e bem-estar.</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((f, i) => (
-              <div key={i} className="card-hover text-center p-6 rounded-2xl border border-gray-100">
-                <div className={`w-14 h-14 ${f.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
-                  <f.icon size={24} className="text-[#3D2C4E]" />
-                </div>
-                <h3 className="font-heading text-base font-semibold text-[#3D2C4E] mb-2">{f.label}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       {/* ─── PRODUCTS PREVIEW ─── */}
       <section className="py-20 gradient-section">
