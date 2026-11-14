@@ -39,7 +39,7 @@ export default function ProductCard({ product }: { product: any }) {
       {/* Content */}
       <div className="p-4">
         {product.fragrance && (
-          <span className="badge badge-purple text-xs mb-2 inline-block">{product.fragrance}</span>
+          <span className="badge badge-pink text-xs mb-2 inline-block">{product.fragrance}</span>
         )}
         <h3 className="font-heading font-semibold text-[#3D2C4E] text-base leading-snug mb-1 line-clamp-2">{product.name}</h3>
         <p className="text-xs text-gray-400 leading-relaxed line-clamp-2 mb-3">{product.description}</p>
