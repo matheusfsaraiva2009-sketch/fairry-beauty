@@ -2,6 +2,8 @@ import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { UserCircle2 } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 async function getData() {
   const [configs, members] = await Promise.all([
     prisma.siteConfig.findMany(),

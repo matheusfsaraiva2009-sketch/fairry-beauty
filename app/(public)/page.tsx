@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import HomeClient from "@/components/home/HomeClient";
 
+export const dynamic = "force-dynamic";
+
 async function getData() {
   try {
     const [products, massages, configs] = await Promise.all([
