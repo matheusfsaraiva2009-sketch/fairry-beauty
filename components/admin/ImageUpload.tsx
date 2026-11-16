@@ -1,6 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Upload, X, Loader2, Link as LinkIcon } from "lucide-react";
 
 interface Props {
   value: string;
@@ -8,10 +8,8 @@ interface Props {
   label?: string;
 }
 
-const CLOUD_NAME = "kwicjmsi";
-const UPLOAD_PRESET = "fairy-beauty-uploads";
-const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif", "image/svg+xml"];
-const MAX_MB = 10;
+const MAX_MB = 8;
+const ALLOWED = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"];
 
 export default function ImageUpload({ value, onChange, label = "Imagem" }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -20,54 +18,66 @@ export default function ImageUpload({ value, onChange, label = "Imagem" }: Props
   const [tab, setTab] = useState<"upload" | "url">(
     value && value.startsWith("http") ? "url" : "upload"
   );
+  const [urlInput, setUrlInput] = useState(value && value.startsWith("http") ? value : "");
 
-  const uploadToCloudinary = async (file: File) => {
+  const processFile = (file: File) => {
     setError("");
+
     if (!ALLOWED.includes(file.type)) {
-      setError("Formato não suportado. Use JPG, PNG, WEBP, GIF ou SVG.");
+      setError("Use JPG, PNG ou WEBP.");
       return;
     }
+
     if (file.size > MAX_MB * 1024 * 1024) {
-      setError(`Arquivo muito grande. Máximo ${MAX_MB}MB.`);
+      setError(`Máximo ${MAX_MB}MB por imagem.`);
       return;
     }
 
     setLoading(true);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("upload_preset", UPLOAD_PRESET);
 
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-        { method: "POST", body: fd }
-      );
-
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error?.message || "Erro ao enviar imagem.");
-        return;
+    // Reduz o tamanho da imagem antes de converter para base64
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const MAX_DIM = 1200;
+      let { width, height } = img;
+      if (width > MAX_DIM || height > MAX_DIM) {
+        if (width > height) { height = Math.round((height * MAX_DIM) / width); width = MAX_DIM; }
+        else { width = Math.round((width * MAX_DIM) / height); height = MAX_DIM; }
       }
-
-      const data = await res.json();
-      onChange(data.secure_url);
-    } catch {
-      setError("Erro de conexão com o Cloudinary.");
-    } finally {
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+      const base64 = canvas.toDataURL("image/jpeg", 0.82);
+      URL.revokeObjectURL(objectUrl);
+      onChange(base64);
       setLoading(false);
-      if (inputRef.current) inputRef.current.value = "";
-    }
+    };
+    img.onerror = () => {
+      setError("Erro ao processar imagem.");
+      setLoading(false);
+      URL.revokeObjectURL(objectUrl);
+    };
+    img.src = objectUrl;
   };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) uploadToCloudinary(file);
+    if (file) processFile(file);
+    if (inputRef.current) inputRef.current.value = "";
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
-    if (file) uploadToCloudinary(file);
+    if (file) processFile(file);
+  };
+
+  const handleUrlConfirm = () => {
+    if (!urlInput.trim()) return;
+    onChange(urlInput.trim());
   };
 
   return (
@@ -82,7 +92,7 @@ export default function ImageUpload({ value, onChange, label = "Imagem" }: Props
         </button>
         <button type="button" onClick={() => setTab("url")}
           className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${tab === "url" ? "bg-white text-[#3D2C4E] shadow-sm" : "text-gray-500 hover:text-[#3D2C4E]"}`}>
-          🔗 Por URL
+          🔗 Por link
         </button>
       </div>
 
@@ -91,42 +101,67 @@ export default function ImageUpload({ value, onChange, label = "Imagem" }: Props
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={() => !loading && inputRef.current?.click()}
-          className={`relative border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-colors
-            ${loading ? "border-[#E6CBF7] bg-[#faf4ff]" : "border-[#E6CBF7] hover:border-[#FBB8D9] hover:bg-[#fff8ff]"}`}
+          className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors
+            ${loading
+              ? "border-[#E6CBF7] bg-[#faf4ff] cursor-wait"
+              : "border-[#E6CBF7] hover:border-[#FBB8D9] hover:bg-[#fff8ff] cursor-pointer"}`}
         >
-          <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+            className="hidden"
+            onChange={handleFile}
+          />
           {loading ? (
             <div className="flex flex-col items-center gap-2 text-[#3D2C4E]">
-              <Loader2 size={24} className="animate-spin text-[#FBB8D9]" />
-              <span className="text-xs">Enviando para Cloudinary...</span>
+              <Loader2 size={26} className="animate-spin text-[#FBB8D9]" />
+              <span className="text-xs">Processando imagem...</span>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2 text-gray-400">
-              <Upload size={22} className="text-[#E6CBF7]" />
-              <span className="text-xs">Clique ou arraste a imagem aqui</span>
-              <span className="text-[10px] text-gray-300">JPG, PNG, WEBP, GIF, SVG • máx. 10MB</span>
+              <Upload size={26} className="text-[#E6CBF7]" />
+              <p className="text-xs font-medium text-[#3D2C4E]">Clique ou arraste a imagem aqui</p>
+              <p className="text-[10px] text-gray-400">JPG, PNG, WEBP • até {MAX_MB}MB</p>
             </div>
           )}
         </div>
       ) : (
-        <input
-          type="url"
-          value={value}
-          onChange={(e) => { setError(""); onChange(e.target.value); }}
-          placeholder="https://..."
-          className="w-full px-3 py-2.5 border border-[#E6CBF7] rounded-xl text-sm text-[#3D2C4E] placeholder:text-gray-300"
-        />
+        <div className="flex gap-2">
+          <input
+            type="url"
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleUrlConfirm()}
+            placeholder="https://exemplo.com/imagem.jpg"
+            className="flex-1 px-3 py-2.5 border border-[#E6CBF7] rounded-xl text-sm text-[#3D2C4E] placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#E6CBF7]"
+          />
+          <button
+            type="button"
+            onClick={handleUrlConfirm}
+            className="px-3 py-2.5 bg-[#E6CBF7] text-[#3D2C4E] rounded-xl text-sm font-medium hover:bg-[#FBB8D9] transition-colors"
+          >
+            OK
+          </button>
+        </div>
       )}
 
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
 
       {/* Preview */}
       {value && (
-        <div className="mt-2 relative inline-block">
-          <img src={value} alt="Preview" className="h-24 w-24 object-cover rounded-xl border border-[#f0e8ff] shadow-sm" />
-          <button type="button" onClick={() => { onChange(""); setError(""); }}
-            className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600">
-            <X size={10} />
+        <div className="mt-3 relative inline-block">
+          <img
+            src={value}
+            alt="Preview"
+            className="h-28 w-28 object-cover rounded-xl border border-[#f0e8ff] shadow-sm"
+          />
+          <button
+            type="button"
+            onClick={() => { onChange(""); setUrlInput(""); setError(""); }}
+            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow"
+          >
+            <X size={12} />
           </button>
         </div>
       )}
